@@ -4,7 +4,7 @@ requests==2.34.2
 
 # LLM provider SDKs
 openai==2.44.0
-tiktoken==0.9.0  # OpenAI tokenizer, used by 14_advanced/03_llm_examples/tiktoken_tokenization_example.py
+tiktoken==0.9.0  # OpenAI tokenizer, used by 14_advanced/03_llm_examples/03_10_tiktoken_tokenization_example.py
 ollama==0.6.2
 google-generativeai==0.8.6
 cohere==7.0.5
@@ -16,6 +16,11 @@ crewai==0.203.2
 autogen-agentchat==0.7.5
 autogen-ext[openai]==0.7.5
 autogen-ext[anthropic]==0.7.5
+# Microsoft Agent Framework (AutoGen successor), used by 16_PGP-Agentic/code/session_7/7_1-7_9, 7_13.
+# Its MCP client (MCPStdioTool) needs mcp>=2.2, which conflicts with openai-agents (mcp<2) below - not usable here.
+agent-framework-core==1.26.0
+agent-framework-openai==1.18.2
+agent-framework-orchestrations==1.4.2
 google-adk==2.3.0
 phidata==2.7.10
 
@@ -29,9 +34,9 @@ presidio-anonymizer==2.2.364
 langchain==0.3.30
 langchain-core==0.3.86
 langchain-community==0.3.31
-beautifulsoup4==4.15.0  # required by WebBaseLoader (14_advanced/05_langchain/document_loaders.py)
+beautifulsoup4==4.15.0  # required by WebBaseLoader (14_advanced/05_langchain/05_5_document_loaders.py)
 langchain-experimental==0.3.4  # for SemanticChunker; 0.4.x+ forces langchain-core>=1.0, breaking the pre-1.0 pin above
-langsmith==0.9.7  # for @traceable/Client (14_advanced/05_langchain/langsmith_tracing.py)
+langsmith==0.9.7  # for @traceable/Client (14_advanced/09_langsmith/09_1_langsmith_tracing.py)
 langchain-openai==0.3.35
 langchain-huggingface==0.3.1
 langchain-text-splitters==0.3.11
@@ -40,11 +45,11 @@ langchain-chroma==0.2.6
 langchain-ollama==0.3.10
 langchain-tavily==0.2.17
 tavily-python==0.7.26
-google-search-results==2.4.2  # SerpApi client, used for real Google Flights data (14_advanced/08_langgraph_cycles_HIL_persistence/parallel_trip_planner_send_api.py)
+google-search-results==2.4.2  # SerpApi client, used for real Google Flights data (14_advanced/08_langgraph_cycles_HIL_persistence/08_5_parallel_trip_planner_send_api.py)
 langgraph==0.6.11
 langgraph-checkpoint==3.0.1  # must stay <4.0.0 for langgraph 0.6.11 compat, and >=3.0.1 for langgraph-cli[inmem]'s langgraph-api (Studio dev server) to run at all
 langgraph-checkpoint-sqlite==3.0.3  # matching 3.x line; langgraph-checkpoint-sqlite 2.0.11 called JsonPlusSerializer.dumps(), removed in langgraph-checkpoint 3.x
-langgraph-checkpoint-redis==0.3.0  # pinned below 0.4.x/0.5.x, which pull in langgraph-checkpoint 4.x and break the langgraph-checkpoint==3.0.1 pin above; needs a RediSearch-capable server (e.g. redis/redis-stack-server), not plain redis, for 14_advanced/08_langgraph_cycles_HIL_persistence/redis_checkpointing_production.py
+langgraph-checkpoint-redis==0.3.0  # pinned below 0.4.x/0.5.x, which pull in langgraph-checkpoint 4.x and break the langgraph-checkpoint==3.0.1 pin above; needs a RediSearch-capable server (e.g. redis/redis-stack-server), not plain redis, for 14_advanced/08_langgraph_cycles_HIL_persistence/08_4_redis_checkpointing_production.py
 langserve==0.3.3
 langfuse==4.13.0
 langchain-google-genai==2.0.8  # pinned below latest (like langchain-core) since 2.1.x+ needs google-ai-generativelanguage>=0.7, which conflicts with google-generativeai==0.8.6's hard pin of 0.6.15; 3.0.0+ needs langchain-core>=1.0
@@ -74,18 +79,21 @@ umap-learn==0.5.12
 
 # RAG evaluation
 ragas==0.4.3  # used by 15_real/ragas_evaluation.py and 14_advanced/14_agentic_rag_graph_rag/14_1_ragas_evaluation.py
-deepeval==4.1.5  # used by 15_real/deepeval_evaluation.py
+# deepeval==4.1.5  # used by 15_real/deepeval_evaluation.py - INTENTIONALLY COMMENTED OUT, see below
 # KNOWN CONFLICT: deepeval==4.1.5 requires posthog>=7.0.0,<8.0.0 but chromadb==1.1.1 above
 # requires posthog>=2.4.0,<6.0.0 - genuinely incompatible ranges, not a resolver quirk.
-# `uv pip install -r requirements.txt` (or a from-scratch `pip install -r requirements.txt`
-# with a strict resolver) will fail on this outright. Working fix: install this file with
-# the deepeval line removed first (resolves cleanly), then install deepeval on its own with
-# `--no-deps` (e.g. `uv pip install deepeval==4.1.5 --no-deps`) - deepeval doesn't hard-require
-# posthog at runtime, so this leaves chromadb's posthog constraint satisfied and deepeval
-# working anyway. BUT --no-deps also skips deepeval's other deps, and `import deepeval` then
-# fails (No module named 'sentry_sdk'), so add them afterwards (pure additions, bump no pins):
-#   uv pip install pyfiglet pytest pytest-asyncio pytest-repeat pytest-rerunfailures pytest-xdist "questionary>=2.0.0,<3.0.0" sentry-sdk "tabulate>=0.9.0,<0.10.0" wheel Do NOT try to fix this by bumping chromadb or downgrading deepeval without
-# checking the "don't bump chromadb" crewai note above.
+# Both pip and uv refuse to install this file if the deepeval line is active, so it is
+# commented out. Install deepeval separately AFTER this file, with --no-deps (deepeval doesn't
+# hard-require posthog at runtime, so chromadb's posthog constraint stays satisfied):
+#   pip install deepeval==4.1.5 --no-deps
+# --no-deps also skips deepeval's other deps, and `import deepeval` then fails
+# (No module named 'sentry_sdk'), so add them too (pure additions, bump no pins):
+#   pip install pyfiglet pytest pytest-asyncio pytest-repeat pytest-rerunfailures pytest-xdist "questionary>=2.0.0,<3.0.0" sentry-sdk "tabulate>=0.9.0,<0.10.0" wheel
+# (`uv pip install ...` works the same way.) `pip check` / `uv pip check` then reports two
+# harmless deepeval mismatches: posthog 5.4.0 (wants >=7) and click 8.5.1 (wants <8.4).
+# Don't pin click lower - huggingface-hub needs click>=8.4.2; deepeval imports and its CLI
+# were verified working with click 8.5.1. Do NOT try to fix the posthog clash by bumping chromadb or
+# downgrading deepeval without checking the "don't bump chromadb" crewai note above.
 
 # Voice / audio
 sounddevice==0.5.5  # microphone capture, used by 15_real/voice_assistant_whisper_langchain.py ("mic" mode)
@@ -101,6 +109,8 @@ datasets==5.0.0
 peft==0.21.0  # LoRA adapters, used by 14_advanced/17_Monitoring_Evaluation_and_Fine_Tuning/17_4_lora_sentiment_finetuning.py
 accelerate==1.15.0  # required by transformers.Trainer, used by the same script
 yfinance==1.5.1
+polars==1.40.1  # fast Parquet scans over the 37M-row AMFI NAV file, used by 6_mcp/mf_nav/mf_nav_server.py
+statsmodels==0.14.6  # ARIMA/SARIMAX NAV forecasts in 6_mcp/mf_nav/mf_nav_server.py; 0.14.4 breaks on scipy 1.18 (fmin_l_bfgs_b lost its disp kwarg)
 
 # Document / file handling
 pypdf==6.14.2

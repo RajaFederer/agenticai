@@ -35,7 +35,7 @@ llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 # of this process entirely, into three separate MCP servers
 # (accounts_mcp_server.py, transaction_mcp_server.py,
 # service_mcp_server.py - one stdio subprocess each), following
-# 6_mcp/6_22_langgraph_agent_mcp_tools.py's MultiServerMCPClient
+# 6_mcp/6_15_langgraph_agent_mcp_tools.py's MultiServerMCPClient
 # pattern. The seven @tool-decorated functions from step 6 are gone
 # from this file - only their MCP server counterparts remain, and this
 # file now just asks the MCP client for whatever tools each server
@@ -174,7 +174,7 @@ class ChatState(TypedDict):
 
 
 def make_specialist_agent(tools: list):
-    """Factory mirroring 14_advanced/07_langgraph/conditional_routing_specialists.py's
+    """Factory mirroring 14_advanced/07_langgraph/07_4_conditional_routing_specialists.py's
     make_specialist(): every specialist shares the same underlying LLM and the same
     agent/tools loop - what makes each one a "specialist" is purely which tools it's
     bound to and what its system prompt says it may do, nothing structural. The
@@ -201,7 +201,7 @@ def make_specialist_agent(tools: list):
 
 # ---------------------------------------------------------------------
 # FAQ specialist: retrieve -> generate, following
-# 14_advanced/07_langgraph/message_graph_bank_faq.py. Unchanged from
+# 14_advanced/07_langgraph/07_5_message_graph_bank_faq.py. Unchanged from
 # step 6 - no MCP tools involved, plain sync nodes. LangGraph runs sync
 # nodes fine even when the compiled graph is invoked via .ainvoke()
 # (used uniformly for every specialist in run_specialist below), so
